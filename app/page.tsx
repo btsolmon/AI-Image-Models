@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import ReactMarkdown from "react-markdown";
 import {
   Sparkles,
   RotateCw,
@@ -17,7 +19,16 @@ import {
 export default function FoodAIInterface() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [image, setImage] = useState<string | null>(null);
-  const [text, setText] = useState("");
+  const [recognitionText, setRecognitionText] = useState(""); // 2-р таб
+  const [creatorText, setCreatorText] = useState(""); // 3-р таб
+  const [chatInput, setChatInput] = useState(""); // Chat-ын input
+  const [loading, setLoading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState("");
+  const [recognitionResult, setRecognitionResult] = useState("");
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<
+    { role: string; content: string }[]
+  >([{ role: "ai", content: "How can I help you today?" }]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -27,6 +38,94 @@ export default function FoodAIInterface() {
         setImage(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGenerate = async (
+    type: "analysis" | "recognition" | "creator",
+  ) => {
+    setLoading(true);
+    try {
+      if (type === "analysis") {
+        // Gemini 1.5 Flash integration via API
+        const res = await fetch("/api/caption/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image }),
+        });
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(
+            errorData.error || `HTTP error! status: ${res.status}`,
+          );
+        }
+        const data = await res.json();
+        setAnalysisResult(data.result);
+      } else if (type === "recognition") {
+        // Gemini 1.5 Flash integration for text
+        const res = await fetch("/api/extract/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: recognitionText }),
+        });
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(
+            errorData.error || `HTTP error! status: ${res.status}`,
+          );
+        }
+        const data = await res.json();
+        setRecognitionResult(data.result);
+      } else if (type === "creator") {
+        // FLUX.1 integration for image generation
+        const res = await fetch("/api/generate-image/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: creatorText }),
+        });
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(
+            errorData.error || `HTTP error! status: ${res.status}`,
+          );
+        }
+        const data = await res.json();
+        setGeneratedImage(data.imageUrl);
+      }
+    } catch (error: any) {
+      console.error("AI Error:", error);
+      alert(error.message || "Үйлдэл хийхэд алдаа гарлаа");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const input = chatInput;
+    if (!input.trim()) return;
+
+    const newMessages = [...chatMessages, { role: "user", content: input }];
+    setChatMessages(newMessages);
+    setChatInput("");
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newMessages }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      setChatMessages((prev) => [...prev, { role: "ai", content: data.reply }]);
+    } catch (error: any) {
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "ai", content: `Уучлаарай, алдаа гарлаа: ${error.message}` },
+      ]);
     }
   };
 
@@ -117,12 +216,13 @@ export default function FoodAIInterface() {
 
               <div className="flex justify-end">
                 <Button
-                  disabled={!image} // Зураг байхгүй бол товчлуур дарагдахгүй
+                  onClick={() => handleGenerate("analysis")}
+                  disabled={!image || loading}
                   className={`${
                     image ? "bg-black hover:bg-black" : "bg-gray-400"
                   } text-white px-8 py-6 rounded-lg text-lg font-medium shadow-lg transition-all cursor-pointer`}
                 >
-                  Generate
+                  {loading ? <RotateCw className="animate-spin" /> : "Generate"}
                 </Button>
               </div>
             </div>
@@ -131,13 +231,41 @@ export default function FoodAIInterface() {
             <div className="">
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="w-6 h-6 text-black" />
-                <h3 className="text-xl font-medium tracking-tight ">
+                <h3 className="text-xl font-medium tracking-tight">
                   Here is the summary
                 </h3>
               </div>
-              <p className="text-gray-500 text-[14px]">
-                First, enter your image to recognize an ingredients.
-              </p>
+              {analysisResult ? (
+                <div className="text-sm text-gray-700 bg-white border border-gray-300 p-4 rounded-lg prose prose-sm max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      // Жагсаалтын зүйл бүрийн хооронд зай нэмэх
+                      li: ({ node, ...props }) => (
+                        <li className="mb-2" {...props} />
+                      ),
+                      // Жагсаалтын үндсэн хэсэгт зай нэмэх
+                      ul: ({ node, ...props }) => (
+                        <ul className="list-disc pl-5 mb-4" {...props} />
+                      ),
+                      // Гарчиг эсвэл bold текстүүдэд зай нэмэх
+                      strong: ({ node, ...props }) => (
+                        <strong
+                          className="font-bold block mt-3 mb-1"
+                          {...props}
+                        />
+                      ),
+                    }}
+                  >
+                    {analysisResult}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-[14px]">
+                  {loading
+                    ? "Working..."
+                    : "First, enter your image to recognize an ingredients."}
+                </p>
+              )}
             </div>
           </TabsContent>
 
@@ -167,22 +295,23 @@ export default function FoodAIInterface() {
               <div className="relative mt-4">
                 <textarea
                   placeholder="Орц тодорхойлох"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
+                  value={recognitionText} // Энд өөр state ашиглана
+                  onChange={(e) => setRecognitionText(e.target.value)}
                   className="w-full h-[124px] border-2 border-gray-100 rounded-lg px-4 py-4 text-sm bg-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:border-gray-300 transition-all resize-none"
                 />
               </div>
 
               <div className="flex justify-end">
                 <Button
-                  disabled={text.trim().length === 0} // Текст хоосон бол товчлуурыг идэвхгүй болгоно
+                  onClick={() => handleGenerate("recognition")}
+                  disabled={recognitionText.trim().length === 0 || loading}
                   className={`${
-                    text.trim().length > 0
-                      ? "bg-black hover:bg-gray-800" // Текст бичсэн үед хар өнгөтэй болно
-                      : "bg-gray-400 cursor-not-allowed" // Хоосон үед саарал байна
+                    recognitionText.trim().length > 0
+                      ? "bg-black hover:bg-gray-800"
+                      : "bg-gray-400 cursor-not-allowed"
                   } text-white px-8 py-6 rounded-lg text-lg font-medium shadow-lg transition-all`}
                 >
-                  Generate
+                  {loading ? <RotateCw className="animate-spin" /> : "Generate"}
                 </Button>
               </div>
             </div>
@@ -191,13 +320,42 @@ export default function FoodAIInterface() {
             <div className="">
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="w-6 h-6 text-black" />
-                <h3 className="text-xl font-medium tracking-tight ">
+                <h3 className="text-xl font-medium tracking-tight">
                   Identified Ingredients
                 </h3>
               </div>
-              <p className="text-gray-500 text-[14px]">
-                First, enter your text to recognize an ingredient.
-              </p>
+              {recognitionResult ? (
+                <div className="text-sm text-gray-700 bg-white border border-gray-300 p-4 rounded-lg prose prose-sm max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      // analysisResult-той ижилхэн зайны тохиргоо
+                      li: ({ node, ...props }) => (
+                        <li className="mt-2" {...props} />
+                      ),
+                      ul: ({ node, ...props }) => (
+                        <ul
+                          className="list-disc pl-5 mb-4 font-bold"
+                          {...props}
+                        />
+                      ),
+                      strong: ({ node, ...props }) => (
+                        <strong
+                          className="font-bold block mt-3 mb-1"
+                          {...props}
+                        />
+                      ),
+                    }}
+                  >
+                    {recognitionResult}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-[14px]">
+                  {loading
+                    ? "Working on your image just wait for moment"
+                    : "First, enter your text to recognize an ingredient."}
+                </p>
+              )}
             </div>
           </TabsContent>
 
@@ -227,22 +385,23 @@ export default function FoodAIInterface() {
               <div className="relative mt-4">
                 <textarea
                   placeholder="Хоолны тайлбар"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
+                  value={creatorText} // Энд бас тусдаа state
+                  onChange={(e) => setCreatorText(e.target.value)}
                   className="w-full h-[124px] border-2 border-gray-100 rounded-lg px-4 py-4 text-sm bg-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:border-gray-300 transition-all resize-none"
                 />
               </div>
 
               <div className="flex justify-end">
                 <Button
-                  disabled={text.trim().length === 0} // Текст хоосон бол товчлуурыг идэвхгүй болгоно
+                  onClick={() => handleGenerate("creator")}
+                  disabled={creatorText.trim().length === 0 || loading}
                   className={`${
-                    text.trim().length > 0
-                      ? "bg-black hover:bg-gray-800" // Текст бичсэн үед хар өнгөтэй болно
-                      : "bg-gray-400 cursor-not-allowed" // Хоосон үед саарал байна
+                    creatorText.trim().length > 0
+                      ? "bg-black hover:bg-gray-800"
+                      : "bg-gray-400 cursor-not-allowed"
                   } text-white px-8 py-6 rounded-lg text-lg font-medium shadow-lg transition-all`}
                 >
-                  Generate
+                  {loading ? <RotateCw className="animate-spin" /> : "Generate"}
                 </Button>
               </div>
             </div>
@@ -253,9 +412,17 @@ export default function FoodAIInterface() {
                 <ImageIcon className="w-6 h-6 text-black" />
                 <h3 className="text-xl font-medium tracking-tight ">Result</h3>
               </div>
-              <p className="text-gray-500 text-[14px]">
-                First, enter your text to generate an image.
-              </p>
+              {generatedImage ? (
+                <img
+                  src={generatedImage}
+                  alt="Generated Food"
+                  className="w-full rounded-lg shadow-md border"
+                />
+              ) : (
+                <p className="text-gray-500 text-[14px]">
+                  First, enter your text to generate an image.
+                </p>
+              )}
             </div>
           </TabsContent>
         </Tabs>
@@ -288,32 +455,43 @@ export default function FoodAIInterface() {
 
           {/* Messages */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
-            <div className="flex justify-start">
-              <div className="bg-gray-800 text-white p-3 rounded-lg text-sm w-fit max-w-[80%] text-center">
-                How can I help you today?
+            {chatMessages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`${
+                    msg.role === "user"
+                      ? "bg-gray-100 text-black"
+                      : "bg-gray-800 text-white"
+                  } p-3 rounded-lg text-sm w-fit max-w-[80%]`}
+                >
+                  {msg.content}
+                </div>
               </div>
-            </div>
-
-            <div className="flex justify-end">
-              <div className="bg-gray-100 text-black p-3 rounded-lg text-sm w-fit max-w-[80%] text-center">
-                Can you describe me detailed delicious pasta carbonara?
-              </div>
-            </div>
+            ))}
           </div>
 
-          <div className="py-2 px-4 border-t flex gap-2">
+          <form
+            onSubmit={handleSendMessage}
+            className="py-2 px-4 border-t flex gap-2"
+          >
             <textarea
               placeholder="Type your message..."
               rows={1}
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
               className=" flex-1 text-sm border rounded-lg px-4 py-2 placeholder:text-gray-400 focus-visible:ring-gray-300 transition-all resize-none"
             />
             <Button
+              type="submit"
               size="icon"
               className="bg-black rounded-full w-10 h-10 cursor-pointer"
             >
               <Send className="w-4 h-4" />
             </Button>
-          </div>
+          </form>
         </div>
       )}
     </div>
