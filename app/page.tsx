@@ -130,47 +130,50 @@ export default function FoodAIInterface() {
   };
 
   return (
-    <div className="relative">
-      <h1 className=" px-12 py-4 font-semibold border-b border-gray-200">
+    <div className="relative min-h-dvh overflow-x-hidden">
+      <h1 className="px-4 py-3 sm:px-12 sm:py-4 font-semibold border-b border-gray-200">
         AI tools
       </h1>
-      <div className="max-w-2xl mx-auto p-8 bg-white min-height-screen">
+      <div className="max-w-2xl mx-auto px-4 py-5 pb-28 sm:p-8 bg-white min-h-[calc(100dvh-57px)]">
         {/* 3 ТАБТАЙ ХЭСЭГ */}
         <Tabs defaultValue="analysis" className="w-full">
-          <TabsList className="bg-gray-100/50 p-1 rounded-lg mb-6">
+          <TabsList className="w-full h-auto min-h-9 bg-gray-100/50 p-1 rounded-lg mb-6">
             <TabsTrigger
               value="analysis"
-              className="rounded-lg px-3 py-1 data-[state=active]:bg-white data-[state=active]:shadow-sm cursor-pointer"
+              className="rounded-lg px-1.5 py-1.5 sm:px-3 text-[11px] leading-tight sm:text-sm whitespace-normal sm:whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm cursor-pointer"
             >
-              Image analysis
+              <span className="sm:hidden">Analysis</span>
+              <span className="hidden sm:inline">Image analysis</span>
             </TabsTrigger>
             <TabsTrigger
               value="recognition"
-              className="rounded-lg px-3 py-1 data-[state=active]:bg-white data-[state=active]:shadow-sm cursor-pointer"
+              className="rounded-lg px-1.5 py-1.5 sm:px-3 text-[11px] leading-tight sm:text-sm whitespace-normal sm:whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm cursor-pointer"
             >
-              Ingredient recognition
+              <span className="sm:hidden">Ingredients</span>
+              <span className="hidden sm:inline">Ingredient recognition</span>
             </TabsTrigger>
             <TabsTrigger
               value="creator"
-              className="rounded-lg px-3 py-1 data-[state=active]:bg-white data-[state=active]:shadow-sm cursor-pointer"
+              className="rounded-lg px-1.5 py-1.5 sm:px-3 text-[11px] leading-tight sm:text-sm whitespace-normal sm:whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm cursor-pointer"
             >
-              Image creator
+              <span className="sm:hidden">Creator</span>
+              <span className="hidden sm:inline">Image creator</span>
             </TabsTrigger>
           </TabsList>
 
           {/* 1. IMAGE ANALYSIS CONTENT */}
-          <TabsContent value="analysis" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-black" />
-                <h2 className="text-xl font-medium tracking-tight">
+          <TabsContent value="analysis" className="space-y-5 sm:space-y-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-black shrink-0" />
+                <h2 className="text-lg sm:text-xl font-medium tracking-tight">
                   Image analysis
                 </h2>
               </div>
               <Button
                 variant="outline"
                 size="icon"
-                className="h-[40px] w-[48px] px-4 py-2 border-gray-200 cursor-pointer"
+                className="h-9 w-10 sm:h-[40px] sm:w-[48px] px-4 py-2 border-gray-200 cursor-pointer shrink-0"
               >
                 <RotateCw className="w-4 h-4 text-gray-400" />
               </Button>
@@ -199,7 +202,7 @@ export default function FoodAIInterface() {
                   </div>
                 </div>
               ) : (
-                <div className="relative w-[200px] h-[133px] rounded-lg overflow-hidden border">
+                <div className="relative w-full max-w-[200px] aspect-[3/2] rounded-lg overflow-hidden border">
                   <img
                     src={image}
                     alt="Preview"
@@ -220,7 +223,7 @@ export default function FoodAIInterface() {
                   disabled={!image || loading}
                   className={`${
                     image ? "bg-black hover:bg-black" : "bg-gray-400"
-                  } text-white px-8 py-6 rounded-lg text-lg font-medium shadow-lg transition-all cursor-pointer`}
+                  } w-full sm:w-auto text-white px-8 py-5 sm:py-6 rounded-lg text-base sm:text-lg font-medium shadow-lg transition-all cursor-pointer`}
                 >
                   {loading ? <RotateCw className="animate-spin" /> : "Generate"}
                 </Button>
@@ -230,13 +233,13 @@ export default function FoodAIInterface() {
             {/* SUMMARY SECTION */}
             <div className="">
               <div className="flex items-center gap-2 mb-2">
-                <FileText className="w-6 h-6 text-black" />
-                <h3 className="text-xl font-medium tracking-tight">
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-black shrink-0" />
+                <h3 className="text-lg sm:text-xl font-medium tracking-tight">
                   Here is the summary
                 </h3>
               </div>
               {analysisResult ? (
-                <div className="text-sm text-gray-700 bg-white border border-gray-300 p-4 rounded-lg prose prose-sm max-w-none">
+                <div className="text-sm text-gray-700 bg-white border border-gray-300 p-3 sm:p-4 rounded-lg prose prose-sm max-w-none overflow-x-auto break-words">
                   <ReactMarkdown
                     components={{
                       // Жагсаалтын зүйл бүрийн хооронд зай нэмэх
@@ -270,18 +273,18 @@ export default function FoodAIInterface() {
           </TabsContent>
 
           {/* 2. INGREDIENT RECOGNITION CONTENT */}
-          <TabsContent value="recognition" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-black" />
-                <h2 className="text-xl font-medium tracking-tight">
+          <TabsContent value="recognition" className="space-y-5 sm:space-y-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-black shrink-0" />
+                <h2 className="text-lg sm:text-xl font-medium tracking-tight">
                   Ingredient recognition
                 </h2>
               </div>
               <Button
                 variant="outline"
                 size="icon"
-                className="h-[40px] w-[48px] px-4 py-2 border-gray-200 cursor-pointer"
+                className="h-9 w-10 sm:h-[40px] sm:w-[48px] px-4 py-2 border-gray-200 cursor-pointer shrink-0"
               >
                 <RotateCw className="w-4 h-4 text-gray-400" />
               </Button>
@@ -297,7 +300,7 @@ export default function FoodAIInterface() {
                   placeholder="Орц тодорхойлох"
                   value={recognitionText} // Энд өөр state ашиглана
                   onChange={(e) => setRecognitionText(e.target.value)}
-                  className="w-full h-[124px] border-2 border-gray-100 rounded-lg px-4 py-4 text-sm bg-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:border-gray-300 transition-all resize-none"
+                  className="w-full h-[124px] border-2 border-gray-100 rounded-lg px-4 py-4 text-base sm:text-sm bg-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:border-gray-300 transition-all resize-none"
                 />
               </div>
 
@@ -309,7 +312,7 @@ export default function FoodAIInterface() {
                     recognitionText.trim().length > 0
                       ? "bg-black hover:bg-gray-800"
                       : "bg-gray-400 cursor-not-allowed"
-                  } text-white px-8 py-6 rounded-lg text-lg font-medium shadow-lg transition-all`}
+                  } w-full sm:w-auto text-white px-8 py-5 sm:py-6 rounded-lg text-base sm:text-lg font-medium shadow-lg transition-all`}
                 >
                   {loading ? <RotateCw className="animate-spin" /> : "Generate"}
                 </Button>
@@ -319,13 +322,13 @@ export default function FoodAIInterface() {
             {/* IDENTIFIED INGREDIENTS SECTION */}
             <div className="">
               <div className="flex items-center gap-2 mb-2">
-                <FileText className="w-6 h-6 text-black" />
-                <h3 className="text-xl font-medium tracking-tight">
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-black shrink-0" />
+                <h3 className="text-lg sm:text-xl font-medium tracking-tight">
                   Identified Ingredients
                 </h3>
               </div>
               {recognitionResult ? (
-                <div className="text-sm text-gray-700 bg-white border border-gray-300 p-4 rounded-lg prose prose-sm max-w-none">
+                <div className="text-sm text-gray-700 bg-white border border-gray-300 p-3 sm:p-4 rounded-lg prose prose-sm max-w-none overflow-x-auto break-words">
                   <ReactMarkdown
                     components={{
                       // analysisResult-той ижилхэн зайны тохиргоо
@@ -360,18 +363,18 @@ export default function FoodAIInterface() {
           </TabsContent>
 
           {/* 3. IMAGE CREATOR CONTENT */}
-          <TabsContent value="creator" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-black" />
-                <h2 className="text-xl font-medium tracking-tight">
+          <TabsContent value="creator" className="space-y-5 sm:space-y-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-black shrink-0" />
+                <h2 className="text-lg sm:text-xl font-medium tracking-tight">
                   Food image creator
                 </h2>
               </div>
               <Button
                 variant="outline"
                 size="icon"
-                className="h-[40px] w-[48px] px-4 py-2 border-gray-200 cursor-pointer"
+                className="h-9 w-10 sm:h-[40px] sm:w-[48px] px-4 py-2 border-gray-200 cursor-pointer shrink-0"
               >
                 <RotateCw className="w-4 h-4 text-gray-400" />
               </Button>
@@ -387,7 +390,7 @@ export default function FoodAIInterface() {
                   placeholder="Хоолны тайлбар"
                   value={creatorText} // Энд бас тусдаа state
                   onChange={(e) => setCreatorText(e.target.value)}
-                  className="w-full h-[124px] border-2 border-gray-100 rounded-lg px-4 py-4 text-sm bg-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:border-gray-300 transition-all resize-none"
+                  className="w-full h-[124px] border-2 border-gray-100 rounded-lg px-4 py-4 text-base sm:text-sm bg-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:border-gray-300 transition-all resize-none"
                 />
               </div>
 
@@ -399,7 +402,7 @@ export default function FoodAIInterface() {
                     creatorText.trim().length > 0
                       ? "bg-black hover:bg-gray-800"
                       : "bg-gray-400 cursor-not-allowed"
-                  } text-white px-8 py-6 rounded-lg text-lg font-medium shadow-lg transition-all`}
+                  } w-full sm:w-auto text-white px-8 py-5 sm:py-6 rounded-lg text-base sm:text-lg font-medium shadow-lg transition-all`}
                 >
                   {loading ? <RotateCw className="animate-spin" /> : "Generate"}
                 </Button>
@@ -409,8 +412,10 @@ export default function FoodAIInterface() {
             {/* RESULT SECTION */}
             <div className="">
               <div className="flex items-center gap-2 mb-2">
-                <ImageIcon className="w-6 h-6 text-black" />
-                <h3 className="text-xl font-medium tracking-tight ">Result</h3>
+                <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-black shrink-0" />
+                <h3 className="text-lg sm:text-xl font-medium tracking-tight">
+                  Result
+                </h3>
               </div>
               {generatedImage ? (
                 <img
@@ -428,10 +433,12 @@ export default function FoodAIInterface() {
         </Tabs>
       </div>
 
-      <div className="fixed bottom-8 right-8">
+      <div
+        className={`fixed z-40 bottom-4 right-4 sm:bottom-8 sm:right-8 ${isChatOpen ? "hidden sm:block" : ""}`}
+      >
         <Button
           onClick={() => setIsChatOpen(!isChatOpen)}
-          className="rounded-full w-14 h-14 shadow-xl bg-black hover:bg-gray-800 transition-all cursor-pointer"
+          className="rounded-full w-12 h-12 sm:w-14 sm:h-14 shadow-xl bg-black hover:bg-gray-800 transition-all cursor-pointer"
         >
           {isChatOpen ? (
             <X className="w-6 h-6" />
@@ -441,9 +448,9 @@ export default function FoodAIInterface() {
         </Button>
       </div>
       {isChatOpen && (
-        <div className="fixed bottom-8 right-8 w-95 h-[500px] bg-white border border-gray-200 rounded-lg shadow-2xl z-50 flex flex-col overflow-hidden">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-8 sm:right-8 sm:w-95 sm:h-[500px] bg-white border-0 sm:border border-gray-200 rounded-none sm:rounded-lg shadow-2xl z-50 flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="p-2.5 border-b flex justify-between items-center">
+          <div className="p-2.5 border-b flex justify-between items-center pt-[max(0.625rem,env(safe-area-inset-top))]">
             <h3 className="pl-1">Chat assistant</h3>
             <button
               onClick={() => setIsChatOpen(false)}
@@ -475,14 +482,14 @@ export default function FoodAIInterface() {
 
           <form
             onSubmit={handleSendMessage}
-            className="py-2 px-4 border-t flex gap-2"
+            className="py-2 px-4 border-t flex gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
           >
             <textarea
               placeholder="Type your message..."
               rows={1}
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              className=" flex-1 text-sm border rounded-lg px-4 py-2 placeholder:text-gray-400 focus-visible:ring-gray-300 transition-all resize-none"
+              className="flex-1 min-w-0 text-base sm:text-sm border rounded-lg px-4 py-2 placeholder:text-gray-400 focus-visible:ring-gray-300 transition-all resize-none"
             />
             <Button
               type="submit"
